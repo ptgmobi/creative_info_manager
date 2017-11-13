@@ -1,0 +1,8 @@
+bin/
+*.mk
+logs/
+*.log
+*.swp
+start.sh
+coverage.txt
+pkg/
