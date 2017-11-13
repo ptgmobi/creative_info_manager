@@ -1,0 +1,13 @@
+{
+	"mysql_config": {
+		"host": "",
+		"port": "3306",
+		"username": "cloudmobi",
+		"password": "www.cloudmobi.net",
+		"database": "creative_info"
+	},
+    "cache_config": {
+        "hosts": "",
+        "ports": "6379"
+    }
+}
