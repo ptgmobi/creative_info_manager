@@ -14,9 +14,9 @@ main:
 deps:
 	${GOGET} github.com/brg-liuwei/gotools
 	${GOGET} github.com/go-sql-driver/mysql
+	${GOGET} github.com/garyburd/redigo/redis
 
 test:
-	./auto_test.sh
 
 clean:
 	@rm bin/creative_info_manager

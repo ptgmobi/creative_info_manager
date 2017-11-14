@@ -34,9 +34,11 @@ func Init(cf *Conf) {
 	if err != nil {
 		panic(err)
 	}
-	db.SetMaxOpenConns(2000)
-	db.SetMaxIdleConns(1000)
-	db.Ping()
+	db.SetMaxOpenConns(100)
+	db.SetMaxIdleConns(50)
+	if err := db.Ping(); err != nil {
+		panic(err)
+	}
 }
 
 func GetCreativeId(cUrl string) (int64, error) {
