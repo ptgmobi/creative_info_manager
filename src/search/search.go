@@ -55,16 +55,13 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cId, err := cache.GetCreativeId(cUrl)
-	if err != nil || cId <= 0 {
-		cId, err = db.GetCreativeId(cUrl)
-		if err != nil || cId <= 0 {
-			s.l.Println("[search] db.GetCreativeId err: ", err)
-			if n, err := NewResp("database error", 0).WriteTo(w); err != nil {
-				s.l.Println("[search] database error resp write: ", n, ", error:", err)
-				return
-			}
-		} else {
+	if cId, err := cache.GetCreativeId(cUrl); err == nil && cId > 0 {
+		if n, err := NewResp("", cId).WriteTo(w); err != nil {
+			s.l.Println("[search] cId in cache resp write: ", n, ", error:", err)
+			return
+		}
+	} else {
+		if cId, err := db.GetCreativeId(cUrl); err == nil && cId > 0 {
 			if err := cache.SetCreativeId(cUrl, cId); err != nil {
 				s.l.Println("[search] cache.SetCreativeId err: ", err)
 			}
@@ -72,11 +69,12 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 				s.l.Println("[search] cId in db resp write: ", n, ", error:", err)
 				return
 			}
-		}
-	} else {
-		if n, err := NewResp("", cId).WriteTo(w); err != nil {
-			s.l.Println("[search] cId in cache resp write: ", n, ", error:", err)
-			return
+		} else {
+			s.l.Println("[search] db.GetCreativeId err: ", err)
+			if n, err := NewResp("database error", 0).WriteTo(w); err != nil {
+				s.l.Println("[search] database error resp write: ", n, ", error:", err)
+				return
+			}
 		}
 	}
 }
