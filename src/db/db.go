@@ -50,13 +50,13 @@ func GetCreativeId(cUrl string) (string, error) {
 			return "", err
 		} else {
 			stmt, err = db.Prepare("INSERT INTO creative_info(url) VALUES(?)")
-			res, err := stmt.Exec(cUrl)
+			_, err := stmt.Exec(cUrl)
 			if err != nil {
 				return "", err
 			}
-			id, err := res.LastInsertId()
-			cId = strconv.FormatInt(id, 10)
+			stmt, err := db.Prepare("SELECT id FROM users WHERE url = ?")
+			err = stmt.QueryRow(cUrl).Scan(&cId)
 		}
 	}
-	return cId, nil
+	return cId, err
 }
