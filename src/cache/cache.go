@@ -29,7 +29,7 @@ func Init(cf *Conf) {
 			IdleTimeout: 240 * time.Second,
 			Dial: func() (redis.Conn, error) {
 				c, err := redis.DialTimeout("tcp", host+":"+port,
-					20*time.Millisecond, 20*time.Millisecond, 20*time.Millisecond)
+					50*time.Millisecond, 50*time.Millisecond, 50*time.Millisecond)
 				if err != nil {
 					return nil, err
 				}
@@ -50,17 +50,19 @@ func getConn() redis.Conn {
 	return cachePool.Get()
 }
 
-func GetCreativeId(cUrl string) (string, error) {
+func GetCreativeId(cUrl string) (int64, error) {
 	c := getConn()
-	r, err := redis.String(c.Do("HGet", "creative_info", "url"))
+	id, err := redis.String(c.Do("HGet", "creative_info", cUrl))
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return r, nil
+	cId, _ := strconv.ParseInt(id, 10, 64)
+	return cId, nil
 }
 
-func SetCreativeId(cUrl, cId string) error {
+func SetCreativeId(cUrl string, cId int64) error {
 	c := getConn()
-	_, err := c.Do("HSet", "creative_info", cUrl, cId)
+	id := strconv.FormatInt(cId, 10)
+	_, err := c.Do("HSet", "creative_info", cUrl, id)
 	return err
 }

@@ -24,10 +24,10 @@ type Service struct {
 
 type Resp struct {
 	Err string `json:"error"`
-	CId string `json:"creative_id"`
+	CId int64  `json:"creative_id"`
 }
 
-func NewResp(errMsg, cId string) *Resp {
+func NewResp(errMsg string, cId int64) *Resp {
 	return &Resp{
 		Err: errMsg,
 		CId: cId,
@@ -49,30 +49,34 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 
 	cUrl := r.Form.Get("creative_url")
 	if len(cUrl) <= 0 {
-		if n, err := NewResp("empty creative_url", "").WriteTo(w); err != nil {
+		if n, err := NewResp("empty creative_url", 0).WriteTo(w); err != nil {
 			s.l.Println("[search] empty creative_url resp write: ", n, ", error:", err)
 			return
 		}
 	}
-	if cId, err := cache.GetCreativeId(cUrl); err != nil || len(cId) <= 0 {
-		if cId, err = db.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
-			if n, err := NewResp("", cId).WriteTo(w); err != nil {
-				s.l.Println("[search] existing cId in db resp write: ", n, ", error:", err)
+
+	cId, err := cache.GetCreativeId(cUrl)
+	if err != nil || cId <= 0 {
+		cId, err = db.GetCreativeId(cUrl)
+		if err != nil || cId <= 0 {
+			s.l.Println("[search] db.GetCreativeId err: ", err)
+			if n, err := NewResp("database error", 0).WriteTo(w); err != nil {
+				s.l.Println("[search] database error resp write: ", n, ", error:", err)
 				return
 			}
+		} else {
 			if err := cache.SetCreativeId(cUrl, cId); err != nil {
 				s.l.Println("[search] cache.SetCreativeId err: ", err)
 			}
 			if n, err := NewResp("", cId).WriteTo(w); err != nil {
-				s.l.Println("[search] cId resp write: ", n, ", error:", err)
+				s.l.Println("[search] cId in db resp write: ", n, ", error:", err)
 				return
 			}
-		} else {
-			s.l.Println("[search] db.GetCreativeId err: ", err)
-			if n, err := NewResp("database error", "").WriteTo(w); err != nil {
-				s.l.Println("[search] database error resp write: ", n, ", error:", err)
-				return
-			}
+		}
+	} else {
+		if n, err := NewResp("", cId).WriteTo(w); err != nil {
+			s.l.Println("[search] cId in cache resp write: ", n, ", error:", err)
+			return
 		}
 	}
 }
@@ -95,5 +99,5 @@ func NewService(conf *Conf) (*Service, error) {
 
 func (s *Service) Serve() {
 	http.HandleFunc("/get_creative_id", s.HandleCreativeId)
-	panic(http.ListenAndServe("12121", nil))
+	panic(http.ListenAndServe(":12121", nil))
 }

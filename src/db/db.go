@@ -23,13 +23,14 @@ func Init(cf *Conf) {
 		panic("no mysql host or port or username or database")
 	}
 
-	if _, err := strconv.Atoi(cf.Port); err != nil {
+	_, err := strconv.Atoi(cf.Port)
+	if err != nil {
 		panic("mysql port not number: " + cf.Port)
 	}
 
 	dbSrc := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8",
 		cf.Username, cf.Password, cf.Host, cf.Port, cf.Database)
-	db, err := sql.Open("mysql", dbSrc)
+	db, err = sql.Open("mysql", dbSrc)
 	if err != nil {
 		panic(err)
 	}
@@ -38,25 +39,25 @@ func Init(cf *Conf) {
 	db.Ping()
 }
 
-func GetCreativeId(cUrl string) (string, error) {
-	var cId string
-	stmt, err := db.Prepare("SELECT id FROM users WHERE url = ?")
+func GetCreativeId(cUrl string) (int64, error) {
+	var id string
+	stmtOut, err := db.Prepare("SELECT id FROM  creative_info WHERE url = ?")
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	err = stmt.QueryRow(cUrl).Scan(&cId)
+	err = stmtOut.QueryRow(cUrl).Scan(&id)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return "", err
+			return 0, err
 		} else {
-			stmt, err = db.Prepare("INSERT INTO creative_info(url) VALUES(?)")
-			_, err := stmt.Exec(cUrl)
+			stmtIn, err := db.Prepare("INSERT INTO creative_info(url) VALUES(?)")
+			_, err = stmtIn.Exec(cUrl)
 			if err != nil {
-				return "", err
+				return 0, err
 			}
-			stmt, err := db.Prepare("SELECT id FROM users WHERE url = ?")
-			err = stmt.QueryRow(cUrl).Scan(&cId)
+			err = stmtOut.QueryRow(cUrl).Scan(&id)
 		}
 	}
-	return cId, err
+	cId, _ := strconv.ParseInt(id, 10, 64)
+	return cId, nil
 }

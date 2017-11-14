@@ -1,13 +1,18 @@
 {
 	"mysql_config": {
-		"host": "",
+		"host": "creative-info-manager.c3vdzrglae3k.ap-southeast-1.rds.amazonaws.com",
 		"port": "3306",
 		"username": "cloudmobi",
 		"password": "www.cloudmobi.net",
 		"database": "creative_info"
 	},
-    "cache_config": {
-        "hosts": "",
-        "ports": "6379"
+    "redis_config": {
+        "host": "creative-cache.fhjqtp.0001.apse1.cache.amazonaws.com",
+        "port": "6379"
+    },
+    "search_config": {
+        "log_path": "logs/search.log",
+        "log_rotate_backup": 4,
+        "log_rotate_lines": 10000
     }
 }
