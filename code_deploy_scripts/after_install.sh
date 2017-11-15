@@ -6,6 +6,8 @@ fi
 
 pushd /opt/creative_info_manager
 
+cp conf/creative.conf.example conf/creative.conf
+
 if [ ! -d "logs" ]; then
     mkdir logs
 fi
