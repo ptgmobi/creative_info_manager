@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ ! -d "/pdata1/log/creative_info_manager" ]; then
-    mkdir -p /pdata1/log/creative_info_manager
+if [ ! -d "/pdata/logs/creative_info_manager" ]; then
+    mkdir -p /pdata/logs/creative_info_manager
 fi
 
 pushd /opt/creative_info_manager
