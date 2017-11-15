@@ -29,7 +29,7 @@ func Init(cf *Conf) {
 			IdleTimeout: 240 * time.Second,
 			Dial: func() (redis.Conn, error) {
 				c, err := redis.DialTimeout("tcp", host+":"+port,
-					50*time.Millisecond, 50*time.Millisecond, 50*time.Millisecond)
+					100*time.Millisecond, 100*time.Millisecond, 100*time.Millisecond)
 				if err != nil {
 					return nil, err
 				}
