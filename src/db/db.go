@@ -28,7 +28,7 @@ func Init(cf *Conf) {
 		panic("mysql port not number: " + cf.Port)
 	}
 
-	dbSrc := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8",
+	dbSrc := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&tls=skip-verify&autocommit=true",
 		cf.Username, cf.Password, cf.Host, cf.Port, cf.Database)
 	db, err = sql.Open("mysql", dbSrc)
 	if err != nil {
