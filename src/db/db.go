@@ -41,27 +41,26 @@ func Init(cf *Conf) {
 	}
 }
 
-func GetCreativeId(cUrl string) (int64, error) {
-	var id string
+func GetCreativeId(cUrl string) (string, error) {
+	var cId string
 	stmt, err := db.Prepare("SELECT id FROM  creative_info WHERE url = ?")
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	if stmt != nil {
 		defer stmt.Close()
 	}
-	if err = stmt.QueryRow(cUrl).Scan(&id); err != nil {
+	if err = stmt.QueryRow(cUrl).Scan(&cId); err != nil {
 		if err != sql.ErrNoRows {
-			return 0, err
+			return "", err
 		} else {
 			if _, err := db.Exec("INSERT INTO creative_info(url) VALUES(?)", cUrl); err != nil {
-				return 0, err
+				return "", err
 			}
-			if err := stmt.QueryRow(cUrl).Scan(&id); err != nil {
-				return 0, err
+			if err := stmt.QueryRow(cUrl).Scan(&cId); err != nil {
+				return "", err
 			}
 		}
 	}
-	cId, _ := strconv.ParseInt(id, 10, 64)
 	return cId, nil
 }

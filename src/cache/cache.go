@@ -50,19 +50,17 @@ func getConn() redis.Conn {
 	return cachePool.Get()
 }
 
-func GetCreativeId(cUrl string) (int64, error) {
+func GetCreativeId(cUrl string) (string, error) {
 	c := getConn()
-	id, err := redis.String(c.Do("HGet", "creative_info", cUrl))
+	cId, err := redis.String(c.Do("HGet", "creative_info", cUrl))
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	cId, _ := strconv.ParseInt(id, 10, 64)
 	return cId, nil
 }
 
-func SetCreativeId(cUrl string, cId int64) error {
+func SetCreativeId(cUrl, cId string) error {
 	c := getConn()
-	id := strconv.FormatInt(cId, 10)
-	_, err := c.Do("HSet", "creative_info", cUrl, id)
+	_, err := c.Do("HSet", "creative_info", cUrl, cId)
 	return err
 }
