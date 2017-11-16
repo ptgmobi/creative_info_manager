@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/brg-liuwei/gotools"
 
@@ -47,8 +48,8 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
 	r.ParseForm()
 
-	cUrl := r.Form.Get("creative_url")
-	if len(cUrl) <= 0 {
+	cUrl, err := url.QueryUnescape(r.Form.Get("creative_url"))
+	if err != nil || len(cUrl) == 0 {
 		if n, err := NewResp("empty creative_url", "").WriteTo(w); err != nil {
 			s.l.Println("[search] empty creative_url, resp write: ", n, ", error:", err)
 			return
