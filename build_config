@@ -20,4 +20,4 @@ if [ ! -d "logs" ]; then
 	mkdir logs
 fi
 
-echo "GOPATH=${GOPATH}:${PWD}" >> ${OUTPUT}
+echo "export GOPATH=${GOPATH}:${PWD}" >> ${OUTPUT}
