@@ -1,7 +1,7 @@
 Creative Information Manager
 ===
 
-* Receive get request with a creative url and return the creative id of it
+* Receive http get request with a creative url and return the creative id of it
 
 
 Runtime Environment
