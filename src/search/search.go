@@ -55,8 +55,8 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(cUrl) == 0 {
 		if n, err := NewResp("empty creative_url", "").WriteTo(w); err != nil {
 			s.l.Println("[search] empty creative_url, resp write: ", n, ", error:", err)
+			return
 		}
-		return
 	}
 
 	if cId, err := cache.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
