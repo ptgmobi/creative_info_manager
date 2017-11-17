@@ -23,35 +23,30 @@ func Init(cf *Conf) {
 		panic("redis port not number: " + cf.Port)
 	}
 
-	func(host, port string) {
-		cachePool = &redis.Pool{
-			MaxIdle:     256,
-			IdleTimeout: 240 * time.Second,
-			Dial: func() (redis.Conn, error) {
-				c, err := redis.DialTimeout("tcp", host+":"+port,
-					100*time.Millisecond, 100*time.Millisecond, 100*time.Millisecond)
-				if err != nil {
-					return nil, err
-				}
-				return c, nil
-			},
-			TestOnBorrow: func(c redis.Conn, t time.Time) error {
-				if time.Since(t) < 10*time.Second {
-					return nil
-				}
-				_, err := c.Do("PING")
-				return err
-			},
-		}
-	}(cf.Host, cf.Port)
-}
-
-func getConn() redis.Conn {
-	return cachePool.Get()
+	cachePool = &redis.Pool{
+		MaxIdle:     256,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.DialTimeout("tcp", cf.Host+":"+cf.Port,
+				100*time.Millisecond, 100*time.Millisecond, 100*time.Millisecond)
+			if err != nil {
+				return nil, err
+			}
+			return c, nil
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			if time.Since(t) < 10*time.Second {
+				return nil
+			}
+			_, err := c.Do("PING")
+			return err
+		},
+	}
 }
 
 func GetCreativeId(cUrl string) (string, error) {
-	c := getConn()
+	c := cachePool.Get()
+	defer c.Close()
 	cId, err := redis.String(c.Do("HGet", "creative_info", cUrl))
 	if err != nil {
 		return "", err
@@ -60,7 +55,8 @@ func GetCreativeId(cUrl string) (string, error) {
 }
 
 func SetCreativeId(cUrl, cId string) error {
-	c := getConn()
+	c := cachePool.Get()
+	defer c.Close()
 	_, err := c.Do("HSet", "creative_info", cUrl, cId)
 	return err
 }
