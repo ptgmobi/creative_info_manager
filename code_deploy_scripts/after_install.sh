@@ -6,7 +6,7 @@ fi
 
 pushd /opt/creative_info_manager
 
-cp conf/creative.conf.example conf/creative.conf
+aws s3 sync s3://cloudmobi-config/creative_info_manager/conf conf/ 
 
 if [ ! -d "logs" ]; then
     mkdir logs
