@@ -48,21 +48,22 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := r.ParseForm(); err != nil {
 		s.l.Println("ParseForm error: ", err)
+		return
 	}
 
 	cUrl, err := url.QueryUnescape(r.Form.Get("creative_url"))
 	if err != nil || len(cUrl) == 0 {
 		if n, err := NewResp("empty creative_url", "").WriteTo(w); err != nil {
 			s.l.Println("[search] empty creative_url, resp write: ", n, ", error:", err)
-			return
 		}
+		return
 	}
 
 	if cId, err := cache.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
 		if n, err := NewResp("", cId).WriteTo(w); err != nil {
 			s.l.Println("[search] cId in cache, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
-			return
 		}
+		return
 	} else {
 		if cId, err := db.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
 			if err := cache.SetCreativeId(cUrl, cId); err != nil {
@@ -70,14 +71,14 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 			}
 			if n, err := NewResp("", cId).WriteTo(w); err != nil {
 				s.l.Println("[search] cId in db, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
-				return
 			}
+			return
 		} else {
 			s.l.Println("[search] db.GetCreativeId, cUrl: ", cUrl, ", err: ", err)
 			if n, err := NewResp("database error", "").WriteTo(w); err != nil {
 				s.l.Println("[search] database error, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
-				return
 			}
+			return
 		}
 	}
 }
