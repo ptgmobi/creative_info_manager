@@ -11,7 +11,7 @@
         "port": "6379"
     },
     "search_config": {
-        "log_path": "logs/search.log",
+        "log_path": "/pdata/logs/creative_info_manager/search.log",
         "log_rotate_backup": 4,
         "log_rotate_lines": 10000
     }
