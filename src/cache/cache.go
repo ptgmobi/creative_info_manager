@@ -15,7 +15,7 @@ type Conf struct {
 var cachePool *redis.Pool
 
 func Init(cf *Conf) {
-	if len(cf.Host) <= 0 || len(cf.Port) <= 0 {
+	if len(cf.Host) == 0 || len(cf.Port) == 0 {
 		panic("no redis host or port")
 	}
 

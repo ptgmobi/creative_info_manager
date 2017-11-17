@@ -19,7 +19,7 @@ type Conf struct {
 var Gdb *sql.DB
 
 func Init(cf *Conf) {
-	if len(cf.Host) <= 0 || len(cf.Port) <= 0 || len(cf.Username) <= 0 || len(cf.Database) <= 0 {
+	if len(cf.Host) == 0 || len(cf.Port) == 0 || len(cf.Username) == 0 || len(cf.Database) == 0 {
 		panic("no mysql host or port or username or database")
 	}
 
