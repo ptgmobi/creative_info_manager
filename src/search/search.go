@@ -45,8 +45,10 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-	w.Header().Set("Content-type", "application/json; charset=utf-8")
-	r.ParseForm()
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err := r.ParseForm(); err != nil {
+		s.l.Println("ParseForm error: ", err)
+	}
 
 	cUrl, err := url.QueryUnescape(r.Form.Get("creative_url"))
 	if err != nil || len(cUrl) == 0 {
