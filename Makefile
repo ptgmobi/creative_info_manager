@@ -1,8 +1,9 @@
+
 GOBUILD = go build
 GOTEST = go test
 GOGET = go get -u
 
-VARS = vars.mk
+VARS=vars.mk
 $(shell ./build_config ${VARS})
 include ${VARS}
 
