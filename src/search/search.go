@@ -48,6 +48,9 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := r.ParseForm(); err != nil {
 		s.l.Println("ParseForm error: ", err)
+		if n, err := NewResp("server error", "").WriteTo(w); err != nil {
+			s.l.Println("[search] server error, resp write: ", n, ", error:", err)
+		}
 		return
 	}
 
@@ -55,8 +58,8 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(cUrl) == 0 {
 		if n, err := NewResp("empty creative_url", "").WriteTo(w); err != nil {
 			s.l.Println("[search] empty creative_url, resp write: ", n, ", error:", err)
-			return
 		}
+		return
 	}
 
 	if cId, err := cache.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
