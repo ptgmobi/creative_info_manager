@@ -31,3 +31,4 @@ Example
     # get a creative id of http://cdn.image2.cloudmobi.net/static/image/1000/1000/1501680592.jpg
     curl "http://127.0.0.1:12121/get_creative_id?creative_url=http%3A%2F%2Fcdn.image2.cloudmobi.net%2Fstatic%2Fimage%2F1000%2F1000%2F1501680592.jpg"
 
+

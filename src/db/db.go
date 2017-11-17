@@ -16,50 +16,42 @@ type Conf struct {
 	Database string `json:"database"`
 }
 
-var db *sql.DB
+var Gdb *sql.DB
 
 func Init(cf *Conf) {
 	if len(cf.Host) == 0 || len(cf.Port) == 0 || len(cf.Username) == 0 || len(cf.Database) == 0 {
 		panic("no mysql host or port or username or database")
 	}
 
-	_, err := strconv.Atoi(cf.Port)
-	if err != nil {
-		panic("mysql port not number: " + cf.Port)
-	}
-
 	dbSrc := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&tls=skip-verify&autocommit=true",
 		cf.Username, cf.Password, cf.Host, cf.Port, cf.Database)
-	db, err = sql.Open("mysql", dbSrc)
+	db, err := sql.Open("mysql", dbSrc)
 	if err != nil {
 		panic(err)
 	}
-	db.SetMaxOpenConns(100)
-	db.SetMaxIdleConns(50)
-	if err := db.Ping(); err != nil {
+	Gdb = db
+	Gdb.SetMaxOpenConns(100)
+	Gdb.SetMaxIdleConns(50)
+	if err := Gdb.Ping(); err != nil {
 		panic(err)
 	}
 }
 
 func GetCreativeId(cUrl string) (string, error) {
 	var cId string
-	stmt, err := db.Prepare("SELECT id FROM  creative_info WHERE url = ?")
-	if err != nil {
-		return "", err
-	}
-	if stmt != nil {
-		defer stmt.Close()
-	}
-	if err = stmt.QueryRow(cUrl).Scan(&cId); err != nil {
+	if err := Gdb.QueryRow("SELECT id FROM  creative_info WHERE url = ?", cUrl).Scan(&cId); err != nil {
 		if err != sql.ErrNoRows {
 			return "", err
 		} else {
-			if _, err := db.Exec("INSERT INTO creative_info(url) VALUES(?)", cUrl); err != nil {
+			res, err := Gdb.Exec("INSERT INTO creative_info(url) VALUES(?)", cUrl)
+			if err != nil {
 				return "", err
 			}
-			if err := stmt.QueryRow(cUrl).Scan(&cId); err != nil {
+			id, err := res.LastInsertId()
+			if err != nil || id == 0 {
 				return "", err
 			}
+			cId = strconv.FormatInt(id, 10)
 		}
 	}
 	return cId, nil
