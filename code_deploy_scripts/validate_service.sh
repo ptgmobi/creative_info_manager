@@ -2,4 +2,4 @@
 
 sleep 1
 
-pgrep creative_info_manager
+pgrep creative_info_m
