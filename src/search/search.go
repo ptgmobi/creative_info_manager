@@ -56,8 +56,9 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 
 	cUrl, err := url.QueryUnescape(r.Form.Get("creative_url"))
 	if err != nil || len(cUrl) == 0 {
-		if n, err := NewResp("empty creative_url", "").WriteTo(w); err != nil {
-			s.l.Println("[search] empty creative_url, resp write: ", n, ", error:", err)
+		s.l.Println("[search] can't get creative_url, err: ", err)
+		if n, err := NewResp("can't get creative_url", "").WriteTo(w); err != nil {
+			s.l.Println("[search] can't get creative_url, resp write: ", n, ", error:", err)
 		}
 		return
 	}
