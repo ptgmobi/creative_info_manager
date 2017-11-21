@@ -55,7 +55,7 @@ CREATE TABLE `creative_info` (
 +---------------+--------------+-------+
 | Key           |  Field       | Value |
 +---------------+--------------+-------+
-| creative_info | url          | id    | 
+| creative_info |  url         | id    | 
 +---------------+--------------+-------+
 ```
 
