@@ -37,13 +37,13 @@ func Init(cf *Conf) {
 	}
 }
 
-func GetCreativeId(cUrl string) (string, error) {
+func GetCreativeId(cUrl, cType string) (string, error) {
 	var cId string
 	if err := Gdb.QueryRow("SELECT id FROM  creative_info WHERE url = ?", cUrl).Scan(&cId); err != nil {
 		if err != sql.ErrNoRows {
 			return "", err
 		} else {
-			res, err := Gdb.Exec("INSERT INTO creative_info(url) VALUES(?)", cUrl)
+			res, err := Gdb.Exec("INSERT INTO creative_info(url, type) VALUES(?, ?)", cUrl, cType)
 			if err != nil {
 				return "", err
 			}
