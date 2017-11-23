@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS `creative_info`;
 CREATE TABLE `creative_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `url` varchar(512) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '素材链接',
+  `type` smallint(4) NOT NULL DEFAULT '0' COMMENT '素材类型 1:图片、2:视频',
   `create_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY (`url`)
@@ -40,13 +41,14 @@ CREATE TABLE `creative_info` (
 ```
 
 ```
-+--------------+--------------+------+---------+---------+-------+
-| Field        | Type         | Null | Key     | Default | Extra |
-+--------------+--------------+------+---------+---------+-------+
-| id           | int(11)      | NO   | PRI     | NULL    |       |
-| url          | varchar(512) | NO   | UNIQUE  | NULL    |       |
-| create_date  | datetime     | NO   |         | NULL    |       |
-+--------------+--------------+------+---------+---------+-------+
++-------------+--------------+------+-----+-------------------+----------------+
+| Field       | Type         | Null | Key | Default           | Extra          |
++-------------+--------------+------+-----+-------------------+----------------+
+| id          | int(11)      | NO   | PRI | NULL              | auto_increment |
+| url         | varchar(512) | NO   | UNI |                   |                |
+| type        | smallint(4)  | NO   |     | 0                 |                |
+| create_date | datetime     | NO   |     | CURRENT_TIMESTAMP |                |
++-------------+--------------+------+-----+-------------------+----------------+
 ```
 
 ### Redis

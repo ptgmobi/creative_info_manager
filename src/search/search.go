@@ -63,13 +63,18 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cType := r.Form.Get("type")
+	if len(cType) == 0 {
+		cType = "1"
+	}
+
 	if cId, err := cache.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
 		if n, err := NewResp("", cId).WriteTo(w); err != nil {
 			s.l.Println("[search] cId in cache, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
 		}
 		return
 	} else {
-		if cId, err := db.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
+		if cId, err := db.GetCreativeId(cUrl, cType); err == nil && len(cId) > 0 {
 			if err := cache.SetCreativeId(cUrl, cId); err != nil {
 				s.l.Println("[search] cache.SetCreativeId error, cUrl: ", cUrl, ", error: ", err)
 			}
