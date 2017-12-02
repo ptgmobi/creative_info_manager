@@ -32,9 +32,9 @@ func NewResp(errMsg, cId, cType string) *Resp {
 	if len(cId) > 0 {
 		switch cType {
 		case "1":
-			cId = "img_" + cId
+			cId = "img." + cId
 		case "2":
-			cId = "mp4_" + cId // 我们视频素材暂时只有mp4
+			cId = "mp4." + cId // 我们视频素材暂时只有mp4
 		default:
 			log.Println("unknown creative type")
 		}
