@@ -1,7 +1,9 @@
 package cache
 
 import (
+	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -44,19 +46,25 @@ func Init(cf *Conf) {
 	}
 }
 
-func GetCreativeId(cUrl string) (string, error) {
+func GetCreativeInfo(cUrl string) (string, int64, error) {
 	c := cachePool.Get()
 	defer c.Close()
-	cId, err := redis.String(c.Do("HGet", "creative_info", cUrl))
+	cInfo, err := redis.String(c.Do("Get", cUrl))
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
-	return cId, nil
+	info := strings.Split(cInfo, "_")
+	if len(info) != 2 {
+		return "", 0, errors.New("invalid info")
+	} else {
+		cSize, err := strconv.ParseInt(info[1], 10, 64)
+		return info[0], cSize, err
+	}
 }
 
-func SetCreativeId(cUrl, cId string) error {
+func SetCreativeInfo(cUrl, cId string, cSize int64) error {
 	c := cachePool.Get()
 	defer c.Close()
-	_, err := c.Do("HSet", "creative_info", cUrl, cId)
+	_, err := c.Do("Set", cUrl, cId+"_"+strconv.FormatInt(cSize, 10))
 	return err
 }
