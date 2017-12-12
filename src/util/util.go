@@ -7,7 +7,7 @@ import (
 
 func GetResourceSize(url string) (int64, error) {
 	c := &http.Client{
-		Timeout: time.Millisecond * 1000,
+		Timeout: time.Millisecond * 900,
 	}
 	resp, err := c.Get(url)
 	if resp != nil {
