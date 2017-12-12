@@ -42,7 +42,7 @@ func Init(cf *Conf) {
 func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 	var cId string
 	var cSize int64
-	if err := Gdb.QueryRow("SELECT id, size FROM  creative_info WHERE url = ?", cUrl).Scan(&cId, cSize); err != nil {
+	if err := Gdb.QueryRow("SELECT id, size FROM  creative_info WHERE url = ?", cUrl).Scan(&cId, &cSize); err != nil {
 		if err != sql.ErrNoRows {
 			return "", 0, err
 		} else {
