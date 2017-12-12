@@ -41,7 +41,7 @@ func Init(cf *Conf) {
 }
 
 func UpdateCreativeSize(cUrl string, cSize int64) error {
-	res, err := Gdb.Exec("UPDATE creative_info SET cSize=? WHERE url=?", cSize, cUrl)
+	res, err := Gdb.Exec("UPDATE creative_info SET size=? WHERE url=?", cSize, cUrl)
 	if err != nil {
 		return err
 	}
