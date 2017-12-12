@@ -10,6 +10,7 @@ import (
 
 	"cache"
 	"db"
+	"util"
 )
 
 type Conf struct {
@@ -53,6 +54,20 @@ func (resp *Resp) WriteTo(w http.ResponseWriter) (int, error) {
 	return w.Write(b)
 }
 
+func UpdateCreativeInfo(cUrl, cId string) (int64, error) {
+	cSize, err := util.GetResourceSize(cUrl)
+	if err != nil {
+		return 0, err
+	}
+	if err := db.UpdateCreativeSize(cUrl, cSize); err != nil {
+		return 0, err
+	}
+	if err := cache.SetCreativeInfo(cUrl, cId, cSize); err != nil {
+		return 0, err
+	}
+	return cSize, nil
+}
+
 func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -82,6 +97,12 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cId, cSize, err := cache.GetCreativeInfo(cUrl); err == nil && len(cId) > 0 {
+		if cSize <= 0 {
+			cSize, err = UpdateCreativeInfo(cUrl, cId)
+			if err != nil {
+				s.l.Println("[search] UpdateCreativeInfo error: ", err, ", cUrl: ", cUrl, ", id: ", cId, ", size: ", cSize)
+			}
+		}
 		if n, err := NewResp("", cId, cType, cSize).WriteTo(w); err != nil {
 			s.l.Println("[search] cId in cache, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
 		}

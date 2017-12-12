@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -37,6 +38,21 @@ func Init(cf *Conf) {
 	if err := Gdb.Ping(); err != nil {
 		panic(err)
 	}
+}
+
+func UpdateCreativeSize(cUrl string, cSize int64) error {
+	res, err := Gdb.Exec("UPDATE creative_info SET cSize=? WHERE url=?", cSize, cUrl)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows <= 0 {
+		return errors.New("no rows affected")
+	}
+	return nil
 }
 
 func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
