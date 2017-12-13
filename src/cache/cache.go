@@ -67,7 +67,8 @@ func GetCreativeInfo(cUrl string) (string, int64, error) {
 func SetCreativeInfo(cUrl, cId string, cSize int64) error {
 	c := cachePool.Get()
 	defer c.Close()
-	_, err := c.Do("Set", cUrl, cId+"_"+strconv.FormatInt(cSize, 10))
+	value := cId + "_" + strconv.FormatInt(cSize, 10)
+	_, err := c.Do("Set", cUrl, value)
 	return err
 }
 
@@ -77,7 +78,7 @@ func BatchUpdateSize(infos []creative_info.CreativeInfo) error {
 
 	for _, info := range infos {
 		if info.Size > 0 {
-			value := info.Id + strconv.FormatInt(info.Size, 10)
+			value := info.Id + "_" + strconv.FormatInt(info.Size, 10)
 			if err := c.Send("Set", info.Url, value); err != nil {
 				return errors.New("Set (" + info.Url + " " + value + ") error: " + err.Error())
 			}
