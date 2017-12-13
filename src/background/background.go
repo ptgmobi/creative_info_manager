@@ -61,7 +61,6 @@ func Init() {
 				}
 			}()
 
-			fmt.Println("background running")
 			time.Sleep(time.Second * 10)
 		}
 	}()
