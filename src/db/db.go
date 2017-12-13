@@ -2,12 +2,12 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 
+	"creative_info"
 	"util"
 )
 
@@ -40,21 +40,6 @@ func Init(cf *Conf) {
 	}
 }
 
-func UpdateCreativeSize(cUrl string, cSize int64) error {
-	res, err := Gdb.Exec("UPDATE creative_info SET size=? WHERE url=?", cSize, cUrl)
-	if err != nil {
-		return err
-	}
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows <= 0 {
-		return errors.New("no rows affected")
-	}
-	return nil
-}
-
 func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 	var cId string
 	var cSize int64
@@ -62,7 +47,7 @@ func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 		if err != sql.ErrNoRows {
 			return "", 0, err
 		} else {
-			cSize, err = util.GetResourceSize(cUrl)
+			cSize, err = util.GetResourceSize(cUrl, 200)
 			if err != nil || cSize <= 0 {
 				return "", 0, err
 			}
@@ -78,4 +63,48 @@ func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 		}
 	}
 	return cId, cSize, nil
+}
+
+func GetCreativeInfoWithNoSize() ([]creative_info.CreativeInfo, error) {
+	rows, err := Gdb.Query("SELECT id, url, fail_times FROM creative_info WHERE size <= 0 and fail_times<=10 ORDER BY id DESC LIMIT 50")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cInfos []creative_info.CreativeInfo
+	for rows.Next() {
+		var info creative_info.CreativeInfo
+		if err := rows.Scan(&info.Id, &info.Url, &info.FailTimes); err != nil {
+			fmt.Println("[db] GetCreativeInfoWithNoSize rows.Scan error: ", err)
+			continue
+		} else {
+			cInfos = append(cInfos, info)
+		}
+	}
+	if len(cInfos) == 0 {
+		fmt.Println("[db] GetCreativeInfoWithNoSize all creative urls has size, except for those fail more than 10 times")
+	}
+
+	return cInfos, nil
+}
+
+func BatchUpdateSize(cInfos []creative_info.CreativeInfo) error {
+	stmt, err := Gdb.Prepare("UPDATE creative_info SET size=?, fail_times=? WHERE url=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, info := range cInfos {
+		if info.Size > 0 {
+			info.FailTimes = 0
+		}
+		if _, err := stmt.Exec(info.Size, info.FailTimes, info.Url); err != nil {
+			fmt.Println("[db] BatchUpdateSize error: ", err, ", url: ", info.Url, ", size: ", info.Size)
+			continue
+		}
+	}
+
+	return nil
 }

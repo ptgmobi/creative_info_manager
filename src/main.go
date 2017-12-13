@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/brg-liuwei/gotools"
 
+	"background"
 	"cache"
 	"db"
 	"search"
@@ -31,6 +32,7 @@ func main() {
 
 	cache.Init(&conf.CacheConf)
 	db.Init(&conf.DbConf)
+	background.Init()
 
 	startSearchService(&conf.SearchConf)
 }

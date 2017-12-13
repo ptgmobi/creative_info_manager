@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
+
+	"creative_info"
 )
 
 type Conf struct {
@@ -67,4 +69,24 @@ func SetCreativeInfo(cUrl, cId string, cSize int64) error {
 	defer c.Close()
 	_, err := c.Do("Set", cUrl, cId+"_"+strconv.FormatInt(cSize, 10))
 	return err
+}
+
+func BatchUpdateSize(infos []creative_info.CreativeInfo) error {
+	c := cachePool.Get()
+	defer c.Close()
+
+	for _, info := range infos {
+		if info.Size > 0 {
+			value := info.Id + strconv.FormatInt(info.Size, 10)
+			if err := c.Send("Set", info.Url, value); err != nil {
+				return errors.New("Set (" + info.Url + " " + value + ") error: " + err.Error())
+			}
+		}
+	}
+
+	if err := c.Flush(); err != nil {
+		return errors.New("FLUSH creative info to redis error: " + err.Error())
+	}
+
+	return nil
 }
