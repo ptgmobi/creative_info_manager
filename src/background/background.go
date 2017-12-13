@@ -19,7 +19,7 @@ func BatchRequestSize(cInfos []creative_info.CreativeInfo) []creative_info.Creat
 		wg.Add(1)
 		go func(info creative_info.CreativeInfo) {
 			defer wg.Done()
-			size, err := util.GetResourceSize(info.Url, 2500)
+			size, err := util.GetResourceSize(info.Url, 5000)
 			if err != nil || size <= 0 {
 				fmt.Println("BatchRequestSize error : ", err, ", url: ", info.Url, ", size: ", size)
 				info.FailTimes++
@@ -61,7 +61,7 @@ func Init() {
 				}
 			}()
 
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 5)
 		}
 	}()
 }
