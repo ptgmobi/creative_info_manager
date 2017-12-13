@@ -19,5 +19,9 @@ func GetResourceSize(url string, timeout int) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return resp.ContentLength, nil
+	size := resp.ContentLength
+	if size <= 0 {
+		size = 0
+	}
+	return size, nil
 }
