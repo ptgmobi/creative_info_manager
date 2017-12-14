@@ -80,7 +80,7 @@ func (s *Service) Serve() {
 					return
 				}
 				if len(cInfos) == 0 {
-					s.l.Println("[background] GetCreativeInfoWithNoSize all urls has size, except for those fail more than 10 times")
+					s.l.Println("[background] GetCreativeInfoWithNoSize all urls has size, except for those fail more than 5 times")
 					return
 				}
 

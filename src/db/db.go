@@ -67,7 +67,7 @@ func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 }
 
 func GetCreativeInfoWithNoSize() ([]creative_info.CreativeInfo, error) {
-	rows, err := Gdb.Query("SELECT id, url, fail_times FROM creative_info WHERE size=0 and fail_times<=10 ORDER BY id DESC LIMIT 50")
+	rows, err := Gdb.Query("SELECT id, url, fail_times FROM creative_info WHERE size=0 and fail_times<=5 ORDER BY id DESC LIMIT 50")
 	if err != nil {
 		return nil, err
 	}
