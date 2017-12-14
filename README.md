@@ -38,7 +38,8 @@ CREATE TABLE `creative_info` (
   `fail_times` smallint(4) NOT NULL DEFAULT '0' COMMENT '获取文件大小的失败次数',
   `create_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`url`)
+  UNIQUE KEY uniq_url(`url`),
+  KEY idx_size(`size`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='creative_info';
 ```
 
