@@ -50,7 +50,7 @@ CREATE TABLE `creative_info` (
 | id          | int(11)      | NO   | PRI | NULL              | auto_increment |
 | url         | varchar(512) | NO   | UNI |                   |                |
 | type        | smallint(4)  | NO   |     | 0                 |                |
-| size        | bigint(11)   | NO   |     | 0                 |                |
+| size        | bigint(11)   | NO   | MUL | 0                 |                |
 | fail_times  | smallint(4)  | NO   |     | 0                 |                |
 | create_date | datetime     | NO   |     | CURRENT_TIMESTAMP |                |
 +-------------+--------------+------+-----+-------------------+----------------+
