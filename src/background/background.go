@@ -1,9 +1,11 @@
 package background
 
 import (
-	"fmt"
+	"log"
 	"sync"
 	"time"
+
+	"github.com/brg-liuwei/gotools"
 
 	"cache"
 	"creative_info"
@@ -11,7 +13,35 @@ import (
 	"util"
 )
 
-func BatchRequestSize(cInfos []creative_info.CreativeInfo) []creative_info.CreativeInfo {
+type Conf struct {
+	Interval        int    `json:"interval"`
+	LogPath         string `json:"log_path"`
+	LogRotateBackup int    `json:"log_rotate_backup"`
+	LogRotateLines  int    `json:"log_rotate_lines"`
+}
+
+type Service struct {
+	conf *Conf
+	l    *gotools.RotateLogger
+}
+
+func NewService(conf *Conf) (*Service, error) {
+	l, err := gotools.NewRotateLogger(conf.LogPath, "[background]", log.LUTC|log.LstdFlags, conf.LogRotateBackup)
+	if err != nil {
+		log.Println("[background] create log err: ", err)
+		return nil, err
+	}
+	l.SetLineRotate(conf.LogRotateLines)
+
+	srv := &Service{
+		conf: conf,
+		l:    l,
+	}
+
+	return srv, nil
+}
+
+func (s *Service) BatchRequestSize(cInfos []creative_info.CreativeInfo) []creative_info.CreativeInfo {
 	var wg sync.WaitGroup
 	cInfoChan := make(chan creative_info.CreativeInfo, len(cInfos))
 
@@ -21,7 +51,7 @@ func BatchRequestSize(cInfos []creative_info.CreativeInfo) []creative_info.Creat
 			defer wg.Done()
 			size, err := util.GetResourceSize(info.Url, 5000)
 			if err != nil || size <= 0 {
-				fmt.Println("BatchRequestSize error : ", err, ", url: ", info.Url, ", size: ", size)
+				s.l.Println("BatchRequestSize error : ", err, ", url: ", info.Url, ", size: ", size)
 				info.FailTimes++
 			}
 			info.Size = size
@@ -40,28 +70,32 @@ func BatchRequestSize(cInfos []creative_info.CreativeInfo) []creative_info.Creat
 	return newInfos
 }
 
-func Init() {
+func (s *Service) Serve() {
 	go func() {
 		for {
 			func() {
 				cInfos, err := db.GetCreativeInfoWithNoSize()
 				if err != nil {
-					fmt.Println("[background] db.GetCreativeInfoWithNoSize error: ", err)
+					s.l.Println("[background] GetCreativeInfoWithNoSize error: ", err)
+					return
+				}
+				if len(cInfos) == 0 {
+					s.l.Println("[background] GetCreativeInfoWithNoSize all urls has size, except for those fail more than 10 times")
 					return
 				}
 
-				newInfos := BatchRequestSize(cInfos)
+				newInfos := s.BatchRequestSize(cInfos)
 				if err := db.BatchUpdateSize(newInfos); err != nil {
-					fmt.Println("[background] db.BatchUpdateSize error: ", err)
+					s.l.Println("[background] db.BatchUpdateSize error: ", err)
 					return
 				}
 				if err := cache.BatchUpdateSize(newInfos); err != nil {
-					fmt.Println("[background] cache.BatchUpdateSize error: ", err)
+					s.l.Println("[background] cache.BatchUpdateSize error: ", err)
 					return
 				}
 			}()
 
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * time.Duration(s.conf.Interval))
 		}
 	}()
 }

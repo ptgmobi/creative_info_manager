@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -49,7 +50,7 @@ func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 		} else {
 			cSize, err = util.GetResourceSize(cUrl, 200)
 			if err != nil || cSize <= 0 {
-				return "", 0, err
+				cSize = 0
 			}
 			res, err := Gdb.Exec("INSERT INTO creative_info(url, type, size) VALUES(?, ?, ?)", cUrl, cType, cSize)
 			if err != nil {
@@ -76,14 +77,11 @@ func GetCreativeInfoWithNoSize() ([]creative_info.CreativeInfo, error) {
 	for rows.Next() {
 		var info creative_info.CreativeInfo
 		if err := rows.Scan(&info.Id, &info.Url, &info.FailTimes); err != nil {
-			fmt.Println("[db] GetCreativeInfoWithNoSize rows.Scan error: ", err)
+			log.Println("[db] GetCreativeInfoWithNoSize rows.Scan error: ", err)
 			continue
 		} else {
 			cInfos = append(cInfos, info)
 		}
-	}
-	if len(cInfos) == 0 {
-		fmt.Println("[db] GetCreativeInfoWithNoSize all creative urls has size, except for those fail more than 10 times")
 	}
 
 	return cInfos, nil
@@ -101,7 +99,7 @@ func BatchUpdateSize(cInfos []creative_info.CreativeInfo) error {
 			info.FailTimes = 0
 		}
 		if _, err := stmt.Exec(info.Size, info.FailTimes, info.Url); err != nil {
-			fmt.Println("[db] BatchUpdateSize error: ", err, ", url: ", info.Url, ", size: ", info.Size)
+			log.Println("[db] BatchUpdateSize error: ", err, ", url: ", info.Url, ", size: ", info.Size)
 			continue
 		}
 	}
