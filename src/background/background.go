@@ -52,6 +52,7 @@ func (s *Service) BatchRequestSize(cInfos []creative_info.CreativeInfo) []creati
 			size, err := util.GetResourceSize(info.Url, 5000)
 			if err != nil || size <= 0 {
 				s.l.Println("BatchRequestSize error : ", err, ", url: ", info.Url, ", size: ", size)
+				size = 0
 				info.FailTimes++
 			}
 			info.Size = size
@@ -70,31 +71,32 @@ func (s *Service) BatchRequestSize(cInfos []creative_info.CreativeInfo) []creati
 	return newInfos
 }
 
+func (s *Service) LoopUpdateSize() {
+	cInfos, err := db.GetCreativeInfoWithNoSize()
+	if err != nil {
+		s.l.Println("[background] GetCreativeInfoWithNoSize error: ", err)
+		return
+	}
+	if len(cInfos) == 0 {
+		s.l.Println("[background] GetCreativeInfoWithNoSize all urls has size, except for those fail more than 5 times")
+		return
+	}
+
+	newInfos := s.BatchRequestSize(cInfos)
+	if err := db.BatchUpdateSize(newInfos); err != nil {
+		s.l.Println("[background] db.BatchUpdateSize error: ", err)
+		return
+	}
+	if err := cache.BatchUpdateSize(newInfos); err != nil {
+		s.l.Println("[background] cache.BatchUpdateSize error: ", err)
+		return
+	}
+}
+
 func (s *Service) Serve() {
 	go func() {
 		for {
-			func() {
-				cInfos, err := db.GetCreativeInfoWithNoSize()
-				if err != nil {
-					s.l.Println("[background] GetCreativeInfoWithNoSize error: ", err)
-					return
-				}
-				if len(cInfos) == 0 {
-					s.l.Println("[background] GetCreativeInfoWithNoSize all urls has size, except for those fail more than 5 times")
-					return
-				}
-
-				newInfos := s.BatchRequestSize(cInfos)
-				if err := db.BatchUpdateSize(newInfos); err != nil {
-					s.l.Println("[background] db.BatchUpdateSize error: ", err)
-					return
-				}
-				if err := cache.BatchUpdateSize(newInfos); err != nil {
-					s.l.Println("[background] cache.BatchUpdateSize error: ", err)
-					return
-				}
-			}()
-
+			s.LoopUpdateSize()
 			time.Sleep(time.Second * time.Duration(s.conf.Interval))
 		}
 	}()
