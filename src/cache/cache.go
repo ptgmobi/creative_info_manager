@@ -1,10 +1,14 @@
 package cache
 
 import (
+	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
+
+	"creative_info"
 )
 
 type Conf struct {
@@ -44,19 +48,46 @@ func Init(cf *Conf) {
 	}
 }
 
-func GetCreativeId(cUrl string) (string, error) {
+func GetCreativeInfo(cUrl string) (string, int64, error) {
 	c := cachePool.Get()
 	defer c.Close()
-	cId, err := redis.String(c.Do("HGet", "creative_info", cUrl))
+	cInfo, err := redis.String(c.Do("Get", cUrl))
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
-	return cId, nil
+	info := strings.Split(cInfo, "_")
+	if len(info) != 2 {
+		return "", 0, errors.New("invalid info")
+	} else {
+		cSize, err := strconv.ParseInt(info[1], 10, 64)
+		return info[0], cSize, err
+	}
 }
 
-func SetCreativeId(cUrl, cId string) error {
+func SetCreativeInfo(cUrl, cId string, cSize int64) error {
 	c := cachePool.Get()
 	defer c.Close()
-	_, err := c.Do("HSet", "creative_info", cUrl, cId)
+	value := cId + "_" + strconv.FormatInt(cSize, 10)
+	_, err := c.Do("Set", cUrl, value)
 	return err
+}
+
+func BatchUpdateSize(infos []creative_info.CreativeInfo) error {
+	c := cachePool.Get()
+	defer c.Close()
+
+	for _, info := range infos {
+		if info.Size > 0 {
+			value := info.Id + "_" + strconv.FormatInt(info.Size, 10)
+			if err := c.Send("Set", info.Url, value); err != nil {
+				return errors.New("Set (" + info.Url + " " + value + ") error: " + err.Error())
+			}
+		}
+	}
+
+	if err := c.Flush(); err != nil {
+		return errors.New("FLUSH creative info to redis error: " + err.Error())
+	}
+
+	return nil
 }

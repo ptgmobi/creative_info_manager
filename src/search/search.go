@@ -26,9 +26,10 @@ type Service struct {
 type Resp struct {
 	ErrMsg     string `json:"err_msg"`
 	CreativeId string `json:"creative_id"`
+	Size       int64  `json:"size"`
 }
 
-func NewResp(errMsg, cId, cType string) *Resp {
+func NewResp(errMsg, cId, cType string, cSize int64) *Resp {
 	if len(cId) > 0 {
 		switch cType {
 		case "1":
@@ -43,6 +44,7 @@ func NewResp(errMsg, cId, cType string) *Resp {
 	return &Resp{
 		ErrMsg:     errMsg,
 		CreativeId: cId,
+		Size:       cSize,
 	}
 }
 
@@ -59,7 +61,7 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := r.ParseForm(); err != nil {
 		s.l.Println("ParseForm error: ", err)
-		if n, err := NewResp("server error", "", "").WriteTo(w); err != nil {
+		if n, err := NewResp("server error", "", "", 0).WriteTo(w); err != nil {
 			s.l.Println("[search] server error, resp write: ", n, ", error:", err)
 		}
 		return
@@ -68,7 +70,7 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	cUrl, err := url.QueryUnescape(r.Form.Get("creative_url"))
 	if err != nil || len(cUrl) == 0 {
 		s.l.Println("[search] can't get creative_url, err: ", err)
-		if n, err := NewResp("can't get creative_url", "", "").WriteTo(w); err != nil {
+		if n, err := NewResp("can't get creative_url", "", "", 0).WriteTo(w); err != nil {
 			s.l.Println("[search] can't get creative_url, resp write: ", n, ", error:", err)
 		}
 		return
@@ -79,24 +81,25 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 		cType = "1"
 	}
 
-	if cId, err := cache.GetCreativeId(cUrl); err == nil && len(cId) > 0 {
-		if n, err := NewResp("", cId, cType).WriteTo(w); err != nil {
-			s.l.Println("[search] cId in cache, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
+	if cId, cSize, err := cache.GetCreativeInfo(cUrl); err == nil && len(cId) > 0 {
+		if n, err := NewResp("", cId, cType, cSize).WriteTo(w); err != nil {
+			s.l.Println("[search] cId in cache, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
 		}
 		return
 	} else {
-		if cId, err := db.GetCreativeId(cUrl, cType); err == nil && len(cId) > 0 {
-			if err := cache.SetCreativeId(cUrl, cId); err != nil {
-				s.l.Println("[search] cache.SetCreativeId error, cUrl: ", cUrl, ", error: ", err)
+		if cId, cSize, err := db.GetCreativeInfo(cUrl, cType); err == nil && len(cId) > 0 {
+			if err := cache.SetCreativeInfo(cUrl, cId, cSize); err != nil {
+				s.l.Println("[search] cache.SetCreativeId error, cUrl: ", cUrl, ", error: ", err, ", size: ", cSize)
 			}
-			if n, err := NewResp("", cId, cType).WriteTo(w); err != nil {
-				s.l.Println("[search] cId in db, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
+			if n, err := NewResp("", cId, cType, cSize).WriteTo(w); err != nil {
+				s.l.Println("[search] cId in db, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
+
 			}
 			return
 		} else {
 			s.l.Println("[search] db.GetCreativeId, cUrl: ", cUrl, ", err: ", err)
-			if n, err := NewResp("database error", "", "").WriteTo(w); err != nil {
-				s.l.Println("[search] database error, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
+			if n, err := NewResp("database error", "", "", 0).WriteTo(w); err != nil {
+				s.l.Println("[search] database error, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
 			}
 			return
 		}

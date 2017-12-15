@@ -34,9 +34,12 @@ CREATE TABLE `creative_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `url` varchar(512) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '素材链接',
   `type` smallint(4) NOT NULL DEFAULT '0' COMMENT '素材类型 1:图片、2:视频',
+  `size` bigint(11) NOT NULL DEFAULT '0' COMMENT '素材文件大小',
+  `fail_times` smallint(4) NOT NULL DEFAULT '0' COMMENT '获取文件大小的失败次数',
   `create_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`url`)
+  UNIQUE KEY uniq_url(`url`),
+  KEY idx_size(`size`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='creative_info';
 ```
 
@@ -47,6 +50,8 @@ CREATE TABLE `creative_info` (
 | id          | int(11)      | NO   | PRI | NULL              | auto_increment |
 | url         | varchar(512) | NO   | UNI |                   |                |
 | type        | smallint(4)  | NO   |     | 0                 |                |
+| size        | bigint(11)   | NO   | MUL | 0                 |                |
+| fail_times  | smallint(4)  | NO   |     | 0                 |                |
 | create_date | datetime     | NO   |     | CURRENT_TIMESTAMP |                |
 +-------------+--------------+------+-----+-------------------+----------------+
 ```
@@ -54,11 +59,11 @@ CREATE TABLE `creative_info` (
 ### Redis
 
 ```
-+---------------+--------------+-------+
-| Key           |  Field       | Value |
-+---------------+--------------+-------+
-| creative_info |  url         | id    | 
-+---------------+--------------+-------+
++---------------+--------------+
+| Key           |  Value       | 
++---------------+--------------+
+| url           |  id_size     | 
++---------------+--------------+
 ```
 
 
@@ -73,7 +78,8 @@ Example
     #sample response:
     {
         err_msg: "",
-        creative_id: "1151"
+        creative_id: "img.4398",
+        size: 107454
     }
 
 
