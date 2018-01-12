@@ -106,3 +106,33 @@ func BatchUpdateSize(cInfos []creative_info.CreativeInfo) error {
 
 	return nil
 }
+
+func GetCreativeInfoByIds(cIds string) ([]creative_info.CreativeInfo, error) {
+	rows, err := Gdb.Query(fmt.Sprintf("SELECT id, url, type, size FROM  creative_info WHERE id IN (%s)", cIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cInfos []creative_info.CreativeInfo
+	for rows.Next() {
+		var info creative_info.CreativeInfo
+		err := rows.Scan(&info.Id, &info.Url, &info.Type, &info.Size)
+		if err != nil {
+			log.Println("[db] GetCreativeInfoById error: ", err, ", info: ", info)
+			continue
+		}
+		cInfos = append(cInfos, info)
+	}
+	return cInfos, nil
+}
+
+func GetMaxId() int {
+	var maxId int
+	err := Gdb.QueryRow("SELECT MAX(id) FROM creative_info").Scan(&maxId)
+	if err != nil || maxId <= 0 {
+		log.Println("[db] GetMaxId error: ", err, ", maxId: ", maxId)
+		return 0
+	}
+	return maxId
+}

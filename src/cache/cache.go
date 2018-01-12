@@ -91,3 +91,26 @@ func BatchUpdateSize(infos []creative_info.CreativeInfo) error {
 
 	return nil
 }
+
+func GetScanInfos(cursor int) ([]creative_info.CreativeInfo, error) {
+	c := cachePool.Get()
+	defer c.Close()
+
+	arr, err := redis.MultiBulk(c.Do("SCAN", cursor))
+	if err != nil {
+		return nil, err
+	}
+	if len(arr) < 2 {
+		return nil, errors.New("No url to show.")
+	} else {
+		keys, err := redis.Strings(arr[1], nil)
+		if err != nil {
+			return nil, err
+		}
+		var cInfos []creative_info.CreativeInfo
+		for _, url := range keys {
+			cInfos = append(cInfos, creative_info.CreativeInfo{Url: url})
+		}
+		return cInfos, nil
+	}
+}

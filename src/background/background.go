@@ -94,10 +94,8 @@ func (s *Service) LoopUpdateSize() {
 }
 
 func (s *Service) Serve() {
-	go func() {
-		for {
-			s.LoopUpdateSize()
-			time.Sleep(time.Second * time.Duration(s.conf.Interval))
-		}
-	}()
+	for {
+		s.LoopUpdateSize()
+		time.Sleep(time.Second * time.Duration(s.conf.Interval))
+	}
 }

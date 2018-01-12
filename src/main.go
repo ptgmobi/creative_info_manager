@@ -6,6 +6,7 @@ import (
 	"background"
 	"cache"
 	"db"
+	"dump"
 	"search"
 )
 
@@ -13,6 +14,7 @@ type Conf struct {
 	DbConf     db.Conf         `json:"mysql_config"`
 	CacheConf  cache.Conf      `json:"redis_config"`
 	SearchConf search.Conf     `json:"search_config"`
+	DumpConf   dump.Conf       `json:"dump_config"`
 	BgConf     background.Conf `json:"background_config"`
 }
 
@@ -24,6 +26,14 @@ func startSearchService(cf *search.Conf) {
 		panic(err)
 	}
 	searchService.Serve()
+}
+
+func startDumpService(cf *dump.Conf) {
+	dumpService, err := dump.NewService(cf)
+	if err != nil {
+		panic(err)
+	}
+	dumpService.Serve()
 }
 
 func startBackgroundService(cf *background.Conf) {
@@ -42,6 +52,8 @@ func main() {
 	cache.Init(&conf.CacheConf)
 	db.Init(&conf.DbConf)
 
-	startBackgroundService(&conf.BgConf)
+	go startDumpService(&conf.DumpConf)
+	go startBackgroundService(&conf.BgConf)
+
 	startSearchService(&conf.SearchConf)
 }

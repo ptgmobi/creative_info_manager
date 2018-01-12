@@ -67,19 +67,73 @@ CREATE TABLE `creative_info` (
 ```
 
 
-Example
----
+API 
+===
 
-*** Attention: creative url should be escaped/encoded, for example, in golang, you should use QueryEscape of net/url package
-
-    # get a creative id of http://cdn.image2.cloudmobi.net/static/image/1000/1000/1501680592.jpg
-    curl "http://127.0.0.1:12121/get_creative_id?creative_url=http%3A%2F%2Fcdn.image2.cloudmobi.net%2Fstatic%2Fimage%2F1000%2F1000%2F1501680592.jpg"
-    
-    #sample response:
-    {
-        err_msg: "",
-        creative_id: "img.4398",
-        size: 107454
-    }
+* [get_creative_id](#get_creative_id) 
+ 
+* [dump](#dump)
 
 
+get_creative_id
+--- 
+ 
+* Description：get a creative id of given creative_url, which should better be escaped/encoded, for example, in golang, you should use QueryEscape of net/url package
+
+* URL: http://54.255.165.222:12121/get_creative_id?creative_url={creative_url}
+ 
+* Sample Response:
+ 
+  ```
+  {
+      err_msg: "",
+      creative_id: "img.4398",
+      size: 107454
+  }
+  ``` 
+
+[Back to TOC](#API) 
+
+
+dump
+--- 
+
+* Description：get creative infos of given ids, which must be Comma separated, if there's no ids, returns 10 random creative urls
+
+* URL: http://54.255.165.222:12345/dump?id={id1,id2,etc}
+ 
+* Sample Response:
+ 
+  ```
+  {
+      err_msg: "",
+      creative_info: [
+          {
+              id: "17",
+              url: "http://cdn.mvideo.cloudmobi.net/upload-files/view?path=7414443ebd13c933cb8e861ca37aabc2",
+              type: 2,
+              size: 5979835
+          },
+          {
+              id: "69",
+              url: "http://cdn.mvideo.cloudmobi.net/upload-files/view?path=5d4ca7f06d082e51f572f8c7b9d0a1bb",
+              type: 2,
+              size: 3661635
+          },
+          {
+              id: "405",
+              url: "http://cdn.mvideo.cloudmobi.net/upload-files/view?path=0ce22b68cc5fba6f5a68e25fd01b4bd7",
+              type: 1,
+              size: 23909
+          },
+          {
+              id: "406",
+              url: "http://cdn.mvideo.cloudmobi.net/upload-files/view?path=954e790039709ff0d9e738385c96e507",
+              type: 1,
+              size: 110706
+          }
+      ]
+  }
+  ``` 
+
+[Back to TOC](#API) 
