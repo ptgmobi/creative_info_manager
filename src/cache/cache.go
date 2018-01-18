@@ -2,6 +2,7 @@ package cache
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -113,4 +114,17 @@ func GetScanInfos(cursor int) ([]creative_info.CreativeInfo, error) {
 		}
 		return cInfos, nil
 	}
+}
+
+func GetRandomKey() ([]creative_info.CreativeInfo, error) {
+	c := cachePool.Get()
+	defer c.Close()
+
+	url, err := redis.String(c.Do("RANDOMKEY"))
+	if err != nil || len(url) == 0 {
+		return nil, fmt.Errorf("GetRandomKey error: %v", err)
+	}
+	var cInfos []creative_info.CreativeInfo
+	cInfos = append(cInfos, creative_info.CreativeInfo{Url: url})
+	return cInfos, nil
 }

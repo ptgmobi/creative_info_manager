@@ -3,7 +3,6 @@ package dump
 import (
 	"encoding/json"
 	"log"
-	"math/rand"
 	"net/http"
 	"strings"
 
@@ -60,7 +59,7 @@ func (s *Service) HandleDump(w http.ResponseWriter, r *http.Request) {
 	var err error
 	cIds := r.Form.Get("id")
 	if len(cIds) == 0 {
-		cInfos, err = cache.GetScanInfos(rand.Intn(db.GetMaxId()))
+		cInfos, err = cache.GetRandomKey()
 	} else {
 		cIds = strings.Replace(cIds, "img.", "", -1)
 		cIds = strings.Replace(cIds, "mp4.", "", -1)
