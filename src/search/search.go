@@ -57,7 +57,7 @@ func (resp *Resp) WriteTo(w http.ResponseWriter) (int, error) {
 func GetInfoFromDbAndSetCache(cUrl, cType string) (string, int64, error) {
 	cId, cSize, err := db.GetCreativeInfo(cUrl, cType)
 	if err != nil || len(cId) == 0 {
-		return "", 0, fmt.Errorf("db.GetCreativeInfo error: %v", err)
+		return "", 0, fmt.Errorf("db.GetCreativeInfo error: %v, or empty cId: %s", err, cId)
 	}
 
 	err = cache.SetCreativeInfo(cUrl, cId, cSize)
@@ -66,7 +66,6 @@ func GetInfoFromDbAndSetCache(cUrl, cType string) (string, int64, error) {
 	}
 
 	return cId, cSize, nil
-
 }
 
 func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
