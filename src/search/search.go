@@ -2,6 +2,7 @@ package search
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -53,6 +54,21 @@ func (resp *Resp) WriteTo(w http.ResponseWriter) (int, error) {
 	return w.Write(b)
 }
 
+func GetInfoFromDbAndSetCache(cUrl, cType string) (string, int64, error) {
+	cId, cSize, err := db.GetCreativeInfo(cUrl, cType)
+	if err == nil || len(cId) == 0 {
+		return "", 0, fmt.Errorf("db.GetCreativeInfo error: %v", err)
+	}
+
+	err = cache.SetCreativeInfo(cUrl, cId, cSize)
+	if err != nil {
+		log.Println("GetInfoFromDbAndSetCache SetCreativeInfo error: ", err, ", cUrl: ", cUrl, ", size: ", cSize)
+	}
+
+	return cId, cSize, nil
+
+}
+
 func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -81,28 +97,25 @@ func (s *Service) HandleCreativeId(w http.ResponseWriter, r *http.Request) {
 		cType = "1"
 	}
 
-	if cId, cSize, err := cache.GetCreativeInfo(cUrl); err == nil && len(cId) > 0 {
+	cId, cSize, err := cache.GetCreativeInfo(cUrl)
+	if err == nil && len(cId) > 0 {
 		if n, err := NewResp("", cId, cType, cSize).WriteTo(w); err != nil {
-			s.l.Println("[search] cId in cache, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
+			s.l.Println("[search] fail to response cache cId, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
 		}
 		return
-	} else {
-		if cId, cSize, err := db.GetCreativeInfo(cUrl, cType); err == nil && len(cId) > 0 {
-			if err := cache.SetCreativeInfo(cUrl, cId, cSize); err != nil {
-				s.l.Println("[search] cache.SetCreativeId error, cUrl: ", cUrl, ", error: ", err, ", size: ", cSize)
-			}
-			if n, err := NewResp("", cId, cType, cSize).WriteTo(w); err != nil {
-				s.l.Println("[search] cId in db, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
+	}
 
-			}
-			return
-		} else {
-			s.l.Println("[search] db.GetCreativeId, cUrl: ", cUrl, ", err: ", err)
-			if n, err := NewResp("database error", "", "", 0).WriteTo(w); err != nil {
-				s.l.Println("[search] database error, cUrl: ", cUrl, ", resp write: ", n, ", error:", err, ", size: ", cSize)
-			}
-			return
+	cId, cSize, err = GetInfoFromDbAndSetCache(cUrl, cType)
+	if err != nil || len(cId) == 0 {
+		s.l.Println("[search] GetInfoFromDbAndSetCache error: ", err, ",  or empty cId: ", cId, ", cUrl: ", cUrl)
+		if n, err := NewResp("server error", "", "", 0).WriteTo(w); err != nil {
+			s.l.Println("[search] fail to response server error, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
 		}
+		return
+	}
+
+	if n, err := NewResp("", cId, cType, cSize).WriteTo(w); err != nil {
+		s.l.Println("[search] fail to response db cId, cUrl: ", cUrl, ", resp write: ", n, ", error:", err)
 	}
 }
 

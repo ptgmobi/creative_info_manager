@@ -9,7 +9,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"creative_info"
-	"util"
 )
 
 type Conf struct {
@@ -48,11 +47,7 @@ func GetCreativeInfo(cUrl, cType string) (string, int64, error) {
 		if err != sql.ErrNoRows {
 			return "", 0, err
 		} else {
-			cSize, err = util.GetResourceSize(cUrl, 200)
-			if err != nil || cSize <= 0 {
-				cSize = 0
-			}
-			res, err := Gdb.Exec("INSERT INTO creative_info(url, type, size) VALUES(?, ?, ?)", cUrl, cType, cSize)
+			res, err := Gdb.Exec("INSERT INTO creative_info(url, type) VALUES(?, ?)", cUrl, cType)
 			if err != nil {
 				return "", 0, err
 			}
