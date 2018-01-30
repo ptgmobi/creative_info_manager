@@ -56,7 +56,7 @@ func (resp *Resp) WriteTo(w http.ResponseWriter) (int, error) {
 
 func GetInfoFromDbAndSetCache(cUrl, cType string) (string, int64, error) {
 	cId, cSize, err := db.GetCreativeInfo(cUrl, cType)
-	if err == nil || len(cId) == 0 {
+	if err != nil || len(cId) == 0 {
 		return "", 0, fmt.Errorf("db.GetCreativeInfo error: %v", err)
 	}
 
