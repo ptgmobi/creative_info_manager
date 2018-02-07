@@ -50,7 +50,7 @@ func NewResp(errMsg, cId, cType string, cSize int64) *Resp {
 }
 
 func (resp *Resp) WriteTo(w http.ResponseWriter) (int, error) {
-	b, _ := json.Marshal(&resp)
+	b, _ := json.Marshal(resp)
 	return w.Write(b)
 }
 
